@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>南區拔尖培訓課程資料儀表板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100%;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 120, 215, 0.1);
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #0078D7;
+            margin-bottom: 10px;
+        }
+
+        .sub-title {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 0;
+        }
+
+        .timeline-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 120, 215, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .timeline-title {
+            text-align: center;
+            color: #0078D7;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #0078D7, #28A745, #FD7E14, #6F42C1);
+            border-radius: 2px;
+            z-index: 1;
+        }
+
+        .timeline-item {
+            background: white;
+            border: 3px solid;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+            position: relative;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .timeline-item:nth-child(1) {
+            border-color: #0078D7;
+            color: #0078D7;
+        }
+
+        .timeline-item:nth-child(2) {
+            border-color: #28A745;
+            color: #28A745;
+        }
+
+        .timeline-item:nth-child(3) {
+            border-color: #FD7E14;
+            color: #FD7E14;
+        }
+
+        .timeline-item:nth-child(4) {
+            border-color: #6F42C1;
+            color: #6F42C1;
+        }
+
+        .timeline-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .timeline-period {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .timeline-name {
+            font-size: 0.9rem;
+            line-height: 1.2;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 120, 215, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .chart-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chart-title.cat { color: #0078D7; }
+        .chart-title.paper { color: #28A745; }
+        .chart-title.ptwa { color: #FD7E14; }
+        .chart-title.president { color: #6F42C1; }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-bottom: 15px;
+        }
+
+        .chart-total {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .chart-total.cat { background: rgba(0, 120, 215, 0.1); color: #0078D7; }
+        .chart-total.paper { background: rgba(40, 167, 69, 0.1); color: #28A745; }
+        .chart-total.ptwa { background: rgba(253, 126, 20, 0.1); color: #FD7E14; }
+        .chart-total.president { background: rgba(111, 66, 193, 0.1); color: #6F42C1; }
+
+        .summary-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 120, 215, 0.1);
+        }
+
+        .summary-title {
+            text-align: center;
+            color: #0078D7;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .summary-chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes growBar {
+            from {
+                transform: scaleY(0);
+            }
+            to {
+                transform: scaleY(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 主標題區 -->
+        <div class="header animate-in">
+            <h1 class="main-title">南區拔尖培訓課程資料儀表板</h1>
+            <p class="sub-title">114年度各類培訓課程人數與時程概況</p>
+        </div>
+
+        <!-- 時間軸 -->
+        <div class="timeline-container animate-in">
+            <h3 class="timeline-title">年度培訓課程時程表</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-period">2–4月</div>
+                    <div class="timeline-name">貓咪盃共訓</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-period">4–5月</div>
+                    <div class="timeline-name">華紙公益盃自走車培訓</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-period">6–7月</div>
+                    <div class="timeline-name">PTWA全國自走車大賽培訓</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-period">9–11月</div>
+                    <div class="timeline-name">總統盃AI素養爭霸戰培訓</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 圖表區域 -->
+        <div class="charts-grid">
+            <div class="chart-card animate-in">
+                <h3 class="chart-title cat">貓咪盃共訓</h3>
+                <div class="chart-container">
+                    <canvas id="catChart"></canvas>
+                </div>
+                <div class="chart-total cat">總計：229 人次</div>
+            </div>
+
+            <div class="chart-card animate-in">
+                <h3 class="chart-title paper">華紙公益盃自走車培訓</h3>
+                <div class="chart-container">
+                    <canvas id="paperChart"></canvas>
+                </div>
+                <div class="chart-total paper">總計：94 人次</div>
+            </div>
+
+            <div class="chart-card animate-in">
+                <h3 class="chart-title ptwa">PTWA全國自走車大賽培訓</h3>
+                <div class="chart-container">
+                    <canvas id="ptwaChart"></canvas>
+                </div>
+                <div class="chart-total ptwa">總計：107 人次</div>
+            </div>
+
+            <div class="chart-card animate-in">
+                <h3 class="chart-title president">總統盃AI素養爭霸戰培訓</h3>
+                <div class="chart-container">
+                    <canvas id="presidentChart"></canvas>
+                </div>
+                <div class="chart-total president">總計：99 人次</div>
+            </div>
+        </div>
+
+        <!-- 總覽比較圖 -->
+        <div class="summary-container animate-in">
+            <h3 class="summary-title">各項培訓課程總覽比較</h3>
+            <div class="summary-chart-container">
+                <canvas id="summaryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js 中文化配置
+        Chart.defaults.font.family = "'Microsoft JhengHei', 'PingFang TC', sans-serif";
+
+        // 通用圖表配置
+        const chartConfig = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '人次',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: '場次',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeOutBounce'
+            }
+        };
+
+        // 貓咪盃共訓柱狀圖
+        const catCtx = document.getElementById('catChart').getContext('2d');
+        new Chart(catCtx, {
+            type: 'bar',
+            data: {
+                labels: ['1-5場\n02/22-03/02\n93人', '6-11場\n03/08-03/18\n94人', '13-18場\n42人'],
+                datasets: [{
+                    data: [93, 94, 42],
+                    backgroundColor: ['#0078D7', '#4A90E2', '#7BB3F0'],
+                    borderColor: '#0078D7',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartConfig,
+                scales: {
+                    ...chartConfig.scales,
+                    x: {
+                        ...chartConfig.scales.x,
+                        title: {
+                            display: true,
+                            text: '場次',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 華紙公益盃柱狀圖
+        const paperCtx = document.getElementById('paperChart').getContext('2d');
+        new Chart(paperCtx, {
+            type: 'bar',
+            data: {
+                labels: ['04/30\n21人', '05/14\n26人', '05/18\n28人', '05/21\n19人'],
+                datasets: [{
+                    data: [21, 26, 28, 19],
+                    backgroundColor: '#28A745',
+                    borderColor: '#28A745',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartConfig,
+                scales: {
+                    ...chartConfig.scales,
+                    x: {
+                        ...chartConfig.scales.x,
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // PTWA柱狀圖
+        const ptwaCtx = document.getElementById('ptwaChart').getContext('2d');
+        new Chart(ptwaCtx, {
+            type: 'bar',
+            data: {
+                labels: ['06/10\n29人', '06/08\n21人', '07/15\n18人', '07/17\n18人', '07/19\n21人'],
+                datasets: [{
+                    data: [29, 21, 18, 18, 21],
+                    backgroundColor: '#FD7E14',
+                    borderColor: '#FD7E14',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartConfig,
+                scales: {
+                    ...chartConfig.scales,
+                    x: {
+                        ...chartConfig.scales.x,
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 總統盃柱狀圖
+        const presidentCtx = document.getElementById('presidentChart').getContext('2d');
+        new Chart(presidentCtx, {
+            type: 'bar',
+            data: {
+                labels: ['09/06\n28人', '09/13\n25人', '09/14\n26人', '09/21\n20人'],
+                datasets: [{
+                    data: [28, 25, 26, 20],
+                    backgroundColor: '#6F42C1',
+                    borderColor: '#6F42C1',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartConfig,
+                scales: {
+                    ...chartConfig.scales,
+                    x: {
+                        ...chartConfig.scales.x,
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 總覽比較圖
+        const summaryCtx = document.getElementById('summaryChart').getContext('2d');
+        new Chart(summaryCtx, {
+            type: 'bar',
+            data: {
+                labels: ['貓咪盃共訓', '華紙公益盃', 'PTWA自走車', '總統盃AI素養'],
+                datasets: [{
+                    label: '總參與人次',
+                    data: [229, 94, 107, 99],
+                    backgroundColor: ['#0078D7', '#28A745', '#FD7E14', '#6F42C1'],
+                    borderColor: ['#0078D7', '#28A745', '#FD7E14', '#6F42C1'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '人次',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '培訓項目',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                animation: {
+                    duration: 2500,
+                    easing: 'easeOutBounce'
+                }
+            }
+        });
+
+        // 頁面載入動畫
+        window.addEventListener('load', () => {
+            const elements = document.querySelectorAll('.animate-in');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                }, index * 300);
+            });
+        });
+
+        // 時間軸互動效果
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        timelineItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                const chartCards = document.querySelectorAll('.chart-card');
+                chartCards[index].scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                
+                // 添加高亮效果
+                chartCards.forEach(card => card.style.transform = 'translateY(0)');
+                setTimeout(() => {
+                    chartCards[index].style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        chartCards[index].style.transform = 'translateY(0)';
+                    }, 1000);
+                }, 100);
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98eb66dd71f28412',t:'MTc2MDQ5MDI2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
